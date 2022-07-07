@@ -4,9 +4,9 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
-const encrypt = require("mongoose-encryption");
+const sha512 = require("js-sha512"); // Later change with BCRYPT, SCRYPT, or Argon2
+
 const port = 3000;
-const env = "process.envy";
 
 const app = express();
 
@@ -22,9 +22,6 @@ const userSchema = new mongoose.Schema({
   email: String,
   password: String,
 });
-
-const secret = `${env.LONG_STRING}`;
-userSchema.plugin(encrypt, { secret: secret, encryptedFields: ["password"] }); // Before mongoose.model
 
 const User = new mongoose.model("User", userSchema);
 
@@ -43,7 +40,7 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   const newUser = new User({
     email: req.body.username,
-    password: req.body.password,
+    password: sha512(req.body.password),
   });
 
   newUser.save((err) => {
